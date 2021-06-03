@@ -1,10 +1,5 @@
 import numpy as np
-    #x_final[0] = x_initial[0] + f_eval[0]*dt # x
-    #x_final[1] = x_initial[1] + f_eval[1]*dt # y
-    #x_final[2] = x_initial[2] + f_eval[2]*dt # z
-    #v_final[0] = v_initial[0] + f_eval[0]*dt # x
-    #v_final[1] = v_initial[1] + f_eval[1]*dt # y
-    #v_final[2] = v_initial[2] + f_eval[2]*dt # z
+
 
 def Euler_step(x_initial,v_initial,t,f,dt,x_other,mass):
     ''' Single step of Euler method

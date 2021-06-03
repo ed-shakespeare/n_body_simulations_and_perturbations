@@ -5,7 +5,7 @@ from Integration_methods_bodies import Euler_step,Euler_Cromer_step,Leapfrog_ste
 from visualisation import visualise
 
 # Trial function
-def f(component,x,v,t,x_other,mass = np.NAN):
+def f(component,x,v,t,x_other,mass):
     ''' Functions for dynamical system. Contains position and velocity
     Input
         component is for choosing position or velocity
@@ -19,9 +19,7 @@ def f(component,x,v,t,x_other,mass = np.NAN):
     '''
     n_other = int(len(x_other)/3) # Number of other bodies
     G = 1
-    if mass == np.NAN:
-        # If mass has not been set, use 1 for every mass
-        mass = np.ones(len(n_other))
+
     func_value = np.zeros_like(x) # This will become vector of length 3, like xdot or vdot
     
     # Position
@@ -49,10 +47,15 @@ dt = 0.01
 # Setup array for trajectories
 x_ICs = (0,0,0,4,0,4) # x,y,z,x,y,z,...
 v_ICs = (0,0,0,0,5,0) # x,y,z,x,y,z,...
-masses = (150,1)
+n_bodies = int(len(x_ICs)/3)
+masses = (150,1) # For equal weights of 1, use []
+if masses == []:
+    masses = np.ones(n_bodies)
+print(masses)
+
 if len(x_ICs) != len(v_ICs) or len(x_ICs) != len(masses)*3:
     raise Exception('Position and velocity IC vectors must both have 3 times the length of the masses vector')
-n_bodies = len(masses)
+
 x_array = np.empty((3*n_bodies,n_steps+1))
 v_array = np.empty((3*n_bodies,n_steps+1))
 x_array[:,0] = np.transpose(x_ICs)

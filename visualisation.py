@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-def visualise(x_array,mass,vis_type = 'graph',dims = 2):
+def visualise(x_array,mass = [],vis_type = 'graph',dims = 2):
     ''' Takes an array of trajectories and plots as either a graph or an animation
     Input
         x_array is numpy array of trajectories. Each row is a coordinate, starting x,y,z,x,y,z,...
@@ -25,7 +25,6 @@ def visualise(x_array,mass,vis_type = 'graph',dims = 2):
             plt.xlabel('x')
             plt.ylabel('y')
             labels = list(map(str,mass))
-            print(labels)
             plt.legend(labels,title = 'Masses of bodies')
             plt.show()
         elif dims == 3:
@@ -37,7 +36,6 @@ def visualise(x_array,mass,vis_type = 'graph',dims = 2):
             plt.ylabel('y')
             ax.set_zlabel('z')
             labels = list(map(str,mass))
-            print(labels)
             plt.legend(labels,title = 'Masses of bodies')
             plt.show()
 
