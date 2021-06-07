@@ -16,4 +16,4 @@ Currently, the code can produce plots of trajectories with the following variabl
 - Can plot in frame of centre of mass
 - Integration done through Euler, Euler-Cromer, or Leapfrog
 
-* Most features are relatively robust, although these can be prone to error in calculation
+\* Most features are relatively robust, although these can be prone to error in calculation
