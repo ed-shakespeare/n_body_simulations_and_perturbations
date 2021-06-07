@@ -2,13 +2,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-def visualise(x_array,mass,vis_type = 'graph',dims = 2):
+def visualise(x_array,mass,vis_type = 'graph',dims = 2,CoM = []):
     ''' Takes an array of trajectories and plots as either a graph or an animation
     Input
         x_array is numpy array of trajectories. Each row is a coordinate, starting x,y,z,x,y,z,...
         mass is the masses of the bodies
         vis_type is a string with the type of visualisation required (default = 'graph')
-        dims is number of dimensions of output (2 or 3) (default = 2)
+        dims is number of dimensions of output (2 or 3), where if 2 is selected, 
+                only x and y will be plotted (default = 2)
     Output
         The visualisation
     
@@ -28,16 +29,31 @@ def visualise(x_array,mass,vis_type = 'graph',dims = 2):
             plt.legend(labels,title = 'Masses of bodies')
             plt.show()
         elif dims == 3:
-            fig = plt.figure()
-            ax = fig.gca(projection='3d')
-            for i in range(n_bodies):
-                plt.plot(np.transpose(x_array[elements[i],:]),np.transpose(x_array[elements[i]+1,:]),np.transpose(x_array[elements[i]+2,:]))
-            plt.xlabel('x')
-            plt.ylabel('y')
-            ax.set_zlabel('z')
-            labels = list(map(str,mass))
-            plt.legend(labels,title = 'Masses of bodies')
-            plt.show()
+            if CoM != []:
+                ### Include CoM in plot
+                fig = plt.figure()
+                ax = fig.gca(projection='3d')
+                for i in range(n_bodies):
+                    plt.plot(np.transpose(x_array[elements[i],:]),np.transpose(x_array[elements[i]+1,:]),np.transpose(x_array[elements[i]+2,:]))
+                plt.plot(np.transpose(CoM[0,:]),np.transpose(CoM[1,:]),np.transpose(CoM[2,:]))
+                plt.xlabel('x')
+                plt.ylabel('y')
+                ax.set_zlabel('z')
+                labels = list(map(str,mass))
+                labels.append('CoM')
+                plt.legend(labels,title = 'Masses of bodies')
+                plt.show()
+            else:
+                fig = plt.figure()
+                ax = fig.gca(projection='3d')
+                for i in range(n_bodies):
+                    plt.plot(np.transpose(x_array[elements[i],:]),np.transpose(x_array[elements[i]+1,:]),np.transpose(x_array[elements[i]+2,:]))
+                plt.xlabel('x')
+                plt.ylabel('y')
+                ax.set_zlabel('z')
+                labels = list(map(str,mass))
+                plt.legend(labels,title = 'Masses of bodies')
+                plt.show()
 
     ### Animation
     elif vis_type == 'animation':
