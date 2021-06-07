@@ -25,14 +25,11 @@ def potential_energy(x,mass):
     G = 1
     U = np.empty((n_bodies,n_bodies))
     for i in range(n_bodies):
-        for j in range(i,n_bodies):
+        for j in range(i+1,n_bodies):
             # Loop over each pair once and then dupilicate, so save computing each time
-            if i == j:
-                pass
-            else:
-                r = x[:,i] - x[:,j]
-                U[i,j] = G*mass[i]*mass[j]/np.linalg.norm(r)
-                U[j,i] = U[i,j]
+            r = x[:,i] - x[:,j]
+            U[i,j] = -G*mass[i]*mass[j]/np.linalg.norm(r)
+            U[j,i] = U[i,j]
     return U   
 
 def kinetic_energy(v,mass):
@@ -62,14 +59,11 @@ def total_energy(x,v,mass):
     x = x.reshape((3,-1),order = 'F')
     v = v.reshape((3,-1),order = 'F')
     # Gravitational Potential Energy sum
-    U = np.sum(potential_energy(x,mass))
+    U = potential_energy(x,mass)
     # Kinetic energy
-    K = np.sum(kinetic_energy(v,mass))
+    K = kinetic_energy(v,mass)
     # Total
-    #if U > 10000 or K > 10000:
-    #    print(U,K)
-    #    raise Exception('Energy error')
-    E = U + K
+    E = np.sum(U + K)
     return E
 
 def angular_momentum(x,v,mass):
@@ -102,7 +96,7 @@ def eccentricity(x,v,mass):
         e is the eccentricity of the system as the current time
     '''
     G = 1
-    red_m = np.sum(np.reciprocal(mass)) # Reduced mass
+    red_m = 1/np.sum(np.reciprocal(mass)) # Reduced mass
 
     ### Specific angular momentum
     L = angular_momentum(x,v,mass)

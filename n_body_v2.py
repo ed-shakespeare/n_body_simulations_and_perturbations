@@ -6,16 +6,19 @@ from visualisation import visualise
 from test_constants import CoM_pos, angular_momentum, eccentricity, total_energy
 from ode_function import ode_func
 
-################################ Setup ################################
+################################ Setup ################################ 
+######## CHANGE VALUES BELOW ########
 # Setup values
 n_steps = 10000
 t = 0 # Start time
 dt = 0.01
 
 # Setup array for trajectories
-x_ICs = (1,0,1,0,1,0,0,0,0) # x,y,z,x,y,z,...
-v_ICs = (-0.5,-0.5,0.2,0.5,0.5,-0.5,0,0,0) # x,y,z,x,y,z,...
-mass = (2,1,0.01)
+x_ICs = (1,0,0,0,0,0) # x,y,z,x,y,z,...
+v_ICs = (-0.5,-1,0,0.5,0.5,0) # x,y,z,x,y,z,...
+mass = (5,1)
+######## CHANGE VALUES ABOVE ########
+
 n_bodies = int(len(x_ICs)/3)
 
 # For equal weights of 1, can use []
@@ -60,30 +63,33 @@ for i in range(n_steps):
     
     t += dt
    
-
 ################################ Visualise ################################
-visualise(x_array,mass,'graph',dims = 3,CoM = CoM) 
+######## CHANGE VALUES BELOW ########
+visualise(x_array,mass,'graph',dims = 2,CoM = CoM, CoM_frame=True) 
+######## CHANGE VALUES ABOVE ########
 
-### Eccentricity and energy over time
-fig, (ax1, ax2) = plt.subplots(nrows=2)
-# Plot eccentricity over time
-ax1.plot(np.arange(n_steps+1)*dt,e)
-ax1.set_xlabel('time')
-ax1.set_ylabel('eccentricity')
+plot_more = True
+if plot_more:
+    ### Eccentricity and energy over time
+    fig, (ax1, ax2) = plt.subplots(nrows=2)
+    # Plot eccentricity over time
+    ax1.plot(np.arange(n_steps+1)*dt,e)
+    ax1.set_xlabel('time')
+    ax1.set_ylabel('eccentricity')
 
-# Plot energy over time
-ax2.plot(np.arange(n_steps+1)*dt,E)
-ax1.set_xlabel('time')
-ax2.set_ylabel('energy')
-plt.show()
+    # Plot energy over time
+    ax2.plot(np.arange(n_steps+1)*dt,E)
+    ax1.set_xlabel('time')
+    ax2.set_ylabel('energy')
+    plt.show()
 
-### Plotting angular momentum
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-for i in range(n_bodies):
-    plt.plot(np.transpose(L[0,:]),np.transpose(L[1,:]),np.transpose(L[2,:]))
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_zlabel('z')
-plt.title('Angular momentum vector')
-plt.show()
+    ### Plotting angular momentum
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    for i in range(n_bodies):
+        plt.plot(np.transpose(L[0,:]),np.transpose(L[1,:]),np.transpose(L[2,:]))
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    plt.title('Angular momentum vector')
+    plt.show()

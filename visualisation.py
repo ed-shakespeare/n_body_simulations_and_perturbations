@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-def visualise(x_array,mass,vis_type = 'graph',dims = 2,CoM = []):
+def visualise(x_array,mass,vis_type = 'graph',dims = 2,CoM = [],CoM_frame = False):
     ''' Takes an array of trajectories and plots as either a graph or an animation
     Input
         x_array is numpy array of trajectories. Each row is a coordinate, starting x,y,z,x,y,z,...
@@ -19,15 +19,32 @@ def visualise(x_array,mass,vis_type = 'graph',dims = 2,CoM = []):
     n_bodies = int(n_rows/3)
     elements = np.arange(start = 0,stop = (n_bodies)*3,step = 3).astype(int)
 
+    # For plotting in CoM frame, adjust coords
+    if CoM_frame:
+        CoM_array = np.tile(CoM,(n_bodies,1))
+        x_array = x_array - CoM_array
+        CoM = CoM - CoM # Trivial, but clear to show what's happening
+
     ### Graph
     if vis_type == 'graph':
         if dims == 2:
-            plt.plot(np.transpose(x_array[elements,:]),np.transpose(x_array[elements+1,:]))
-            plt.xlabel('x')
-            plt.ylabel('y')
-            labels = list(map(str,mass))
-            plt.legend(labels,title = 'Masses of bodies')
-            plt.show()
+            if CoM != []:
+                ### Include CoM in plot
+                plt.plot(np.transpose(x_array[elements,:]),np.transpose(x_array[elements+1,:]))
+                plt.plot(np.transpose(CoM[0,:]),np.transpose(CoM[1,:]))
+                plt.xlabel('x')
+                plt.ylabel('y')
+                labels = list(map(str,mass))
+                labels.append('CoM')
+                plt.legend(labels,title = 'Masses of bodies')
+                plt.show()
+            else:
+                plt.plot(np.transpose(x_array[elements,:]),np.transpose(x_array[elements+1,:]))
+                plt.xlabel('x')
+                plt.ylabel('y')
+                labels = list(map(str,mass))
+                plt.legend(labels,title = 'Masses of bodies')
+                plt.show()
         elif dims == 3:
             if CoM != []:
                 ### Include CoM in plot
