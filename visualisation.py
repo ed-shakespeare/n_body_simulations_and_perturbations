@@ -83,7 +83,7 @@ def visualise(x_array,mass,vis_type = 'graph',dims = 2,CoM = [],CoM_frame = Fals
             #plt.xlim(((np.min(x_array[elements,:]),np.max(x_array[elements,:]))))
             #plt.ylim(((np.min(x_array[elements+1,:]),np.max(x_array[elements+1,:]))))
             def graph_animation(i):
-                p = plt.plot(np.transpose(x_array[elements,:i]),np.transpose(x_array[elements+1,:i])) 
+                p = plt.plot(np.transpose(x_array[elements,:int(np.sqrt(i)*i)]),np.transpose(x_array[elements+1,:int(np.sqrt(i)*i)])) 
                 for j in range(n_bodies):
                     p[j].set_color(colors[j%10]) 
 

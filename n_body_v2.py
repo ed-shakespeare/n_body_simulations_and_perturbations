@@ -16,7 +16,7 @@ dt = 0.01
 # Setup array for trajectories
 x_ICs = (1,0,0,0,0,0) # x,y,z,x,y,z,...
 v_ICs = (-0.5,-1,0,0.5,0.5,0) # x,y,z,x,y,z,...
-mass = (5,1)
+mass = (3,1)
 ######## CHANGE VALUES ABOVE ########
 
 n_bodies = int(len(x_ICs)/3)
@@ -53,7 +53,7 @@ e[0] = eccentricity(x_array[:,0],v_array[:,0],mass) # Initial eccentricity
 for i in range(n_steps):
     # For each body, update position and velocity
     for j in range(n_bodies):
-        x_array[j*3:(j+1)*3,i+1],v_array[j*3:(j+1)*3,i+1] = Leapfrog_step(x_array[j*3:(j+1)*3,i],v_array[j*3:(j+1)*3,i],t,ode_func,dt,np.delete(x_array,(j*3,j*3+1,j*3+2),0)[:,i],mass = np.delete(mass,j))
+        x_array[j*3:(j+1)*3,i+1],v_array[j*3:(j+1)*3,i+1] = Euler_Cromer_step(x_array[j*3:(j+1)*3,i],v_array[j*3:(j+1)*3,i],t,ode_func,dt,np.delete(x_array,(j*3,j*3+1,j*3+2),0)[:,i],mass = np.delete(mass,j))
         # np.delete is technically slow but hopefully good enough.
     ## Track conserved quantities
     CoM[:,i+1] = CoM_pos(x_array[:,i+1],mass)
@@ -65,7 +65,7 @@ for i in range(n_steps):
    
 ################################ Visualise ################################
 ######## CHANGE VALUES BELOW ########
-visualise(x_array,mass,'graph',dims = 2,CoM = CoM, CoM_frame=True) 
+visualise(x_array,mass,'animation',dims = 2,CoM = CoM, CoM_frame=True) 
 ######## CHANGE VALUES ABOVE ########
 
 plot_more = True
