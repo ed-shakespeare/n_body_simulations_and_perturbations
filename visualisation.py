@@ -28,49 +28,23 @@ def visualise(x_array,mass,vis_type = 'graph',dims = 2,CoM = [],CoM_frame = Fals
     ### Graph
     if vis_type == 'graph':
         if dims == 2:
-            if CoM != []:
-                ### Include CoM in plot
-                plt.plot(np.transpose(x_array[elements,:]),np.transpose(x_array[elements+1,:]))
-                plt.plot(np.transpose(CoM[0,:]),np.transpose(CoM[1,:]))
-                plt.xlabel('x')
-                plt.ylabel('y')
-                labels = list(map(str,mass))
-                labels.append('CoM')
-                plt.legend(labels,title = 'Masses of bodies')
-                plt.show()
-            else:
-                plt.plot(np.transpose(x_array[elements,:]),np.transpose(x_array[elements+1,:]))
-                plt.xlabel('x')
-                plt.ylabel('y')
-                labels = list(map(str,mass))
-                plt.legend(labels,title = 'Masses of bodies')
-                plt.show()
+            plt.plot(np.transpose(x_array[elements,:]),np.transpose(x_array[elements+1,:]))
+            plt.xlabel('x')
+            plt.ylabel('y')
+            labels = list(map(str,mass))
+            plt.legend(labels,title = 'Masses of bodies')
+            plt.show()
         elif dims == 3:
-            if CoM != []:
-                ### Include CoM in plot
-                fig = plt.figure()
-                ax = fig.gca(projection='3d')
-                for i in range(n_bodies):
-                    plt.plot(np.transpose(x_array[elements[i],:]),np.transpose(x_array[elements[i]+1,:]),np.transpose(x_array[elements[i]+2,:]))
-                plt.plot(np.transpose(CoM[0,:]),np.transpose(CoM[1,:]),np.transpose(CoM[2,:]))
-                plt.xlabel('x')
-                plt.ylabel('y')
-                ax.set_zlabel('z')
-                labels = list(map(str,mass))
-                labels.append('CoM')
-                plt.legend(labels,title = 'Masses of bodies')
-                plt.show()
-            else:
-                fig = plt.figure()
-                ax = fig.gca(projection='3d')
-                for i in range(n_bodies):
-                    plt.plot(np.transpose(x_array[elements[i],:]),np.transpose(x_array[elements[i]+1,:]),np.transpose(x_array[elements[i]+2,:]))
-                plt.xlabel('x')
-                plt.ylabel('y')
-                ax.set_zlabel('z')
-                labels = list(map(str,mass))
-                plt.legend(labels,title = 'Masses of bodies')
-                plt.show()
+            fig = plt.figure()
+            ax = fig.gca(projection='3d')
+            for i in range(n_bodies):
+                plt.plot(np.transpose(x_array[elements[i],:]),np.transpose(x_array[elements[i]+1,:]),np.transpose(x_array[elements[i]+2,:]))
+            plt.xlabel('x')
+            plt.ylabel('y')
+            ax.set_zlabel('z')
+            labels = list(map(str,mass))
+            plt.legend(labels,title = 'Masses of bodies')
+            plt.show()
 
     ### Animation
     elif vis_type == 'animation':

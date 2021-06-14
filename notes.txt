@@ -1,15 +1,3 @@
-Maths issues so far:
-•	Sometimes, each method gives very different trajectories – error in method or just the problem with unstable systems?
-    •	For 2 bodies, since stable, it’s fine, but more bodies produces large discrepancies
-•	Not going to keep G as an easily adjustable parameter – hardcoded as G = 1 in several functions, since it is unlikely to be changed.
-•	Is my understanding of angular momentum correct? Based around CoM?
-•	Eccentricity and energy sometimes oscillate – energy also decays sometimes. Often though, they are very large numbers, so problem somewhere 
-•   How to do negative potential energy
+Points to mention:
 
-Python specific issues so far:
-
-•	Not able to add a legend for the animation
-
-Notes for later
-
-•	When testing ICs, don’t allow same initial position (and velocity) since these bodies will be degenerate
+- CFL time - what is dx

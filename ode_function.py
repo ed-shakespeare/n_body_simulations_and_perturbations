@@ -1,6 +1,6 @@
 import numpy as np
 # Trial function
-def ode_func(component,x,v,t,x_other,mass):
+def ode_func(component,x,v,t,x_other,mass,G):
     ''' Functions for dynamical system. Contains position and velocity
     Input
         component is for choosing position or velocity
@@ -13,7 +13,6 @@ def ode_func(component,x,v,t,x_other,mass):
         func_value is value of function
     '''
     n_other = int(len(x_other)/3) # Number of other bodies
-    G = 1 # Can be chosen to be trivial
     func_value = np.zeros_like(x) # This will become vector of length 3, like xdot or vdot
     
     # Position
