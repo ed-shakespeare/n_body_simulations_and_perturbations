@@ -31,17 +31,20 @@ def potential_energy(x,mass,G):
         mass is the masses of the bodies
     Output
         U is a n x n array of potential energies    
+        r is a n x n array of distances between bodies
     '''
     x = x.reshape((3,-1),order = 'F')
     n_bodies = x.shape[1]
-    U = np.empty((n_bodies,n_bodies))
+    U = np.zeros((n_bodies,n_bodies))
+    r = np.zeros((n_bodies,n_bodies))
     for i in range(n_bodies):
         for j in range(i+1,n_bodies):
             # Loop over each pair once and then dupilicate, so save computing each time
-            r = x[:,i] - x[:,j]
-            U[i,j] = -(1/2)*G*mass[i]*mass[j]/np.linalg.norm(r)
+            r[i,j] = np.linalg.norm(x[:,i] - x[:,j])
+            U[i,j] = -(1/2)*G*mass[i]*mass[j]/r[i,j]
+            r[j,i] = r[i,j]
             U[j,i] = U[i,j]
-    return U   
+    return U,r   
 
 def kinetic_energy(v,mass):
     ''' Provides the kinetic energy of each body at the current time
@@ -53,7 +56,7 @@ def kinetic_energy(v,mass):
     '''
     v = v.reshape((3,-1),order = 'F')
     n_bodies = v.shape[1]
-    K = np.empty(n_bodies)
+    K = np.zeros(n_bodies)
     for i in range(n_bodies):
         K[i] = (1/2) * mass[i] * np.linalg.norm(v[:,i])**2
     return K 
@@ -68,12 +71,12 @@ def total_energy(x,v,mass,G):
         E is total energy of system
     '''
     # Gravitational Potential Energy sum
-    U = potential_energy(x,mass,G)
+    U,r = potential_energy(x,mass,G)
     # Kinetic energy
     K = kinetic_energy(v,mass)
     # Total
-    E = np.sum(U + K)
-    return E
+    E = np.sum(U) + np.sum(K)
+    return E,r
 
 def angular_momentum(x,v,mass):
     ''' Provides the angular momentum of all the bodies at the current time
@@ -111,7 +114,7 @@ def eccentricity(x,v,mass,G):
     h = L/red_m # Specific angular momentum
     
     ### Specific total energy
-    E = total_energy(x,v,mass,G)
+    E,_ = total_energy(x,v,mass,G)
     # So STE is...
     Eps = E/red_m
     

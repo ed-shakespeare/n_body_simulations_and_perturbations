@@ -1,12 +1,11 @@
 import numpy as np
 # Trial function
-def ode_func(component,x,v,t,x_other,mass,G):
+def ode_func(component,x,v,x_other,mass,G):
     ''' Functions for dynamical system. Contains position and velocity
     Input
         component is for choosing position or velocity
         x is current position
         v is current velocity
-        t is current time
         x_other is current position of other bodies
         masses is the masses of the other bodies
     Output

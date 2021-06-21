@@ -11,18 +11,28 @@ from ode_function import ode_func
 # Setup values
 n_steps = 10000
 t = 0 # Start time
-dt = 0.002
+dt = 0.001
 
+## Courant number
+C = 1/1000
+
+bodies = '2d'
 # Setup array for trajectories
-x_ICs = (1,0,0,0,0,0) # x,y,z,x,y,z,...
-v_ICs = (-0.25,-0.5,0,0.25,0.25,0) # x,y,z,x,y,z,...
-mass = (1,1)
+if bodies == '2d':
+    x_ICs = (1,0,0,0,0,0) # x,y,z,x,y,z,...
+    v_ICs = (-0.25,-0.5,0,0.25,0.25,0) # x,y,z,x,y,z,...
+    mass = (1,1)
+elif bodies == '3d':
+    x_ICs = (1,0,0,0,0,0,1,-1,0) # x,y,z,x,y,z,...
+    v_ICs = (-0.25,-0.5,0,0.25,0.25,0,0,-0.5,0) # x,y,z,x,y,z,...
+    mass = (1,1,1)
 #x_ICs = (0,0,0,150e9,0,0) # x,y,z,x,y,z,...
 #v_ICs = (0,0,0,0,29784.934,0) # x,y,z,x,y,z,...
-##mass = (10e30,10e24)
+#mass = (10e30,10e24)
 
 # Gravitational constant
 G = 1
+#G = 6.67408e-11
 
 # Visualisation
 vis_type = 'graph'
@@ -30,7 +40,7 @@ dims = 2
 plot_more = True
 ######## CHANGE VALUES ABOVE ########
 
-n_bodies = int(len(x_ICs)/3)
+n_bodies = round(len(x_ICs)/3)
 
 # For equal weights of 1, can use []
 if mass == []:
@@ -63,29 +73,45 @@ L = np.empty((3,n_steps+1))
 L[:,0] = angular_momentum(x_array[:,0],v_array[:,0],mass) # Initial angular momentum
 # Energy
 E = np.empty(n_steps+1)
-E[0] = total_energy(x_array[:,0],v_array[:,0],mass,G) # Initial energy
+E[0],r = total_energy(x_array[:,0],v_array[:,0],mass,G) # Initial energy
 ### Should eccentricity be conserved? Seems to contain other measurements that should, so I'll track it similarly
 # Eccentricity
 e = np.empty(n_steps+1)
 e[0] = eccentricity(x_array[:,0],v_array[:,0],mass,G) # Initial eccentricity
 
-
-
-
+## dt_array is for plotting over time
+dt_array = np.empty(n_steps+1)
+dt_array[0] = t
+## dt_store is storing each dt
+dt_store= np.empty(n_steps)
 
 ################################ Run method ################################
 for i in range(n_steps):
+    ## Finding CFL dt values
+    del_t = np.ones(n_bodies)
+    for j in range(n_bodies):
+        for k in range(n_bodies):
+            if r[j,k] != 0:
+                del_t[j] = (C * r[j,k])/np.linalg.norm(v_array[3*j:(j+1)*3,i])
+            else:
+                del_t[j] = np.max(del_t)
+
+    dt = np.min(del_t)
     # Update position and velocity 
-    x_array[:,i+1],v_array[:,i+1] = Leapfrog_step(x_array[:,i],v_array[:,i],t,ode_func,dt,mass,G)
+    x_array[:,i+1],v_array[:,i+1] = Euler_Cromer_step(x_array[:,i],v_array[:,i],ode_func,dt,mass,G)
         # np.delete is technically slow but hopefully good enough.
+    # Store dt in both arrays
+    dt_array[i+1] = dt_array[i] + dt
+    dt_store[i] = dt
+    t += dt
     ## Track conserved quantities
     CoM[:,i+1] = CoM_pos(x_array[:,i+1],mass)
     CoM_v[:,i+1] = CoM_vel(x_array[:,i+1],mass)
     L[:,i+1] = angular_momentum(x_array[:,i+1],v_array[:,i+1],mass)
-    E[i+1] = total_energy(x_array[:,i+1],v_array[:,i+1],mass,G)
+    E[i+1],r = total_energy(x_array[:,i+1],v_array[:,i+1],mass,G)
     e[i+1] = eccentricity(x_array[:,i+1],v_array[:,i+1],mass,G)
     
-    t += dt
+    
    
 ################################ Visualise ################################
 #visualise(x_array,mass,vis_type,dims) 
@@ -107,29 +133,36 @@ if plot_more:
     ax1 = fig.add_subplot(gs[1, :-1])
     ax1.set_title('x against t')
     for i in range(n_bodies):
-        ax1.plot(np.arange(n_steps+1)*dt,x_array[i*3,:])
+        ax1.plot(dt_array,x_array[i*3,:])
     ax1.set_xlabel('time')
     ax1.set_ylabel('x')
 
     ax2 = fig.add_subplot(gs[1:, -1])
     ax2.set_title('y against t')
     for i in range(n_bodies):
-        ax2.plot(np.arange(n_steps+1)*dt,x_array[(i*3) + 1,:])
+        ax2.plot(dt_array,x_array[(i*3) + 1,:])
     ax2.set_xlabel('time')
     ax2.set_ylabel('y')
     fig.tight_layout()
     plt.show()
 
+    # Plot delta t
+    plt.plot(np.arange(n_steps),dt_store)
+    plt.xlabel('steps')
+    plt.ylabel('dt')
+    plt.title('Plot of dt chosen for each timestep, with C = {}'.format(C))
+    plt.show()
+
     # Plot energy over time
     if E[0] != 0:
         print('E0 not 0')
-        energy_error = (E - E[0])/E[0]
+        energy_error = np.abs((E - E[0])/E[0])
     else:
-        energy_error = (E - E[0])/np.sum(kinetic_energy(v_array[:,0],mass))
-    plt.plot(np.arange(n_steps+1)*dt,energy_error)
+        energy_error = np.abs(E - E[0])/np.sum(kinetic_energy(v_array[:,0],mass))
+    plt.plot(dt_array,energy_error)
     plt.xlabel('time')
-    plt.ylabel('energy')
-    plt.title('Relative error')
+    plt.ylabel('energy error')
+    plt.title('Relative error of energy against time')
     plt.show()
 
     # Plot L_z over time
@@ -144,10 +177,10 @@ if plot_more:
         r_0 = x_0 - CoM # All r vectors
         L_0 = np.cross(r_0[:,0],p_0[:,0])
         L_z_error = (L[2,:] - L[2,0])/L_0[2]
-    plt.plot(np.arange(n_steps+1)*dt,L_z_error)
+    plt.plot(dt_array,L_z_error)
     plt.xlabel('time')
-    plt.ylabel('L_z')
-    plt.title('Relative error')
+    plt.ylabel('L_z error')
+    plt.title('Relative error of angular momentum (z) against time')
     plt.show()
 
 
