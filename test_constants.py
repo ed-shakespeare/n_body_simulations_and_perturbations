@@ -126,4 +126,31 @@ def eccentricity(x,v,mass,G):
 
     return e
 
-        
+    
+### Eccentricity and energy over time
+#fig, (ax1, ax2) = plt.subplots(nrows=2)
+# Plot eccentricity over time
+#ax1.plot(np.arange(n_steps+1)*dt,e)
+#ax1.set_xlabel('time')
+#ax1.set_ylabel('eccentricity')
+
+# Plot energy over time
+#ax2.plot(np.arange(n_steps+1)*dt,E)
+#ax2.set_xlabel('time')
+#ax2.set_ylabel('energy')
+#plt.show()
+
+
+#### Plotting angular momentum
+#fig, (ax0, ax1, ax2) = plt.subplots(nrows=3)
+#plt.title('Angular momentum')
+#ax0.plot(np.arange(n_steps+1)*dt,L[0,:])
+#ax0.set_xlabel('time')
+#ax0.set_ylabel('L_x')
+#ax1.plot(np.arange(n_steps+1)*dt,L[1,:])
+#ax1.set_xlabel('time')
+#ax1.set_ylabel('L_y')
+#ax2.plot(np.arange(n_steps+1)*dt,L[2,:])
+#ax2.set_xlabel('time')
+#ax2.set_ylabel('L_z')
+#plt.show()

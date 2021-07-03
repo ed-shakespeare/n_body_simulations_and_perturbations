@@ -8,10 +8,10 @@ def ode_func(component,x,v,x_other,mass,G):
         v is current velocity
         x_other is current position of other bodies
         masses is the masses of the other bodies
+        G is gravitational constant
     Output
         func_value is value of function
     '''
-    n_other = int(len(x_other)/3) # Number of other bodies
     func_value = np.zeros_like(x) # This will become vector of length 3, like xdot or vdot
     
     # Position
@@ -21,6 +21,7 @@ def ode_func(component,x,v,x_other,mass,G):
     
     # Velocity
     elif component == 1:
+        n_other = int(len(x_other)/3) # Number of other bodies
         for i in range(n_other):
             m = mass[i]
             r = x - x_other[i*3:(i+1)*3] # Vector between bodies

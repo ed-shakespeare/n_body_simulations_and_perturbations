@@ -1,4 +1,3 @@
-############# This file will run with standard timestepping. n_body_v3.py takes over for CFL time steps
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -15,6 +14,8 @@ n_steps = 10000
 t = 0 # Start time
 dt = 0.001
 
+## Courant number
+C = 1/100
 
 bodies = '2d'
 # Setup array for trajectories
@@ -38,6 +39,9 @@ G = 1
 vis_type = 'graph'
 dims = 2
 plot_more = True
+
+# CFL timestep
+CFL_use = True
 ######## CHANGE VALUES ABOVE ########
 
 n_bodies = round(len(x_ICs)/3)
@@ -73,33 +77,88 @@ L = np.empty((3,n_steps+1))
 L[:,0] = angular_momentum(x_array[:,0],v_array[:,0],mass) # Initial angular momentum
 # Energy
 E = np.empty(n_steps+1)
-E[0],_ = total_energy(x_array[:,0],v_array[:,0],mass,G) # Initial energy
+E[0],r_new = total_energy(x_array[:,0],v_array[:,0],mass,G) # Initial energy
 ### Should eccentricity be conserved? Seems to contain other measurements that should, so I'll track it similarly
 # Eccentricity
 e = np.empty(n_steps+1)
 e[0] = eccentricity(x_array[:,0],v_array[:,0],mass,G) # Initial eccentricity
 
+## dt_prog is for plotting over time
+dt_prog = np.empty(n_steps+1)
+dt_prog[0] = t
 
+## These are similar to above, except for just CFL values
+## dt_CFL_prog is for plotting over time
+dt_CFL_prog = np.empty(n_steps+1)
+dt_CFL_prog[0] = t
+## dt_CFL_store is storing each dt
+dt_CFL_store= np.empty(n_steps)
 
+r_old = r_new
 ################################ Run method ################################
 for i in range(n_steps):
-    
+    ## Finding CFL dt values
+    del_t = np.ones(n_bodies)
+    if i >= 0:
+        for j in range(n_bodies):
+            for k in range(n_bodies):
+                if r_new[j,k] != 0:
+                    del_t[j] = (C * r_new[j,k])/np.linalg.norm(v_array[3*j:(j+1)*3,i] - v_array[3*k:(k+1)*3,i])
+                else:
+                    del_t[j] = np.max(del_t)
+    elif i>0:
+        for j in range(n_bodies):
+            for k in range(n_bodies):
+                if r_new[j,k] != 0:
+                    #del_t[j] = (C * r[j,k])/np.linalg.norm(v_array[3*j:(j+1)*3,i] - v_array[3*k:(k+1)*3,i])
+                    del_t_new = (C * r_new[j,k])/np.linalg.norm(v_array[3*j:(j+1)*3,i] - v_array[3*k:(k+1)*3,i])
+                    del_t_old = (C * r_old[j,k])/np.linalg.norm(v_array[3*j:(j+1)*3,i-1] - v_array[3*k:(k+1)*3,i-1])
+                    del_t[j] = (del_t_new+del_t_old)/2
+                else:
+                    del_t[j] = np.max(del_t)
+
+    # Store CFL dt values
+    dt_CFL = np.min(del_t) # Current variable timestep
+    dt_CFL_prog[i+1] = dt_CFL_prog[i] + dt_CFL # This is cumulative vector of dt
+    dt_CFL_store[i] = dt_CFL # This stores dt at each time
+
+    if CFL_use:
+        # If we want to use CFL, then this adjusts dt here
+        dt = dt_CFL # Actual timestep to be used
     # Update position and velocity 
     x_array[:,i+1],v_array[:,i+1] = Euler_Cromer_step(x_array[:,i],v_array[:,i],ode_func,dt,mass,G)
         # np.delete is technically slow but hopefully good enough.
+
     ## Track conserved quantities
+    r_old = r_new
     CoM[:,i+1] = CoM_pos(x_array[:,i+1],mass)
     CoM_v[:,i+1] = CoM_vel(x_array[:,i+1],mass)
     L[:,i+1] = angular_momentum(x_array[:,i+1],v_array[:,i+1],mass)
-    E[i+1],_ = total_energy(x_array[:,i+1],v_array[:,i+1],mass,G)
+    E[i+1],r_new = total_energy(x_array[:,i+1],v_array[:,i+1],mass,G)
     e[i+1] = eccentricity(x_array[:,i+1],v_array[:,i+1],mass,G)
+
+    ## Stop if position or energy error grows too large
+    final_it = i+1 # Final iteration
+    if any(np.abs(x_array[:,i+1]) > 100):
+        # If position goes outside square/cube of side length 200, centred on origin
+        print('Outside box, so terminated at iteration {}'.format(i))
+        break
+    elif np.abs((E[i+1] - E[0])/E[0]) > 0.5:
+        # If energy error goes above 10%
+        print('Energy error is above 10%, so terminated at iteration {}'.format(i))
+        break    
+
     
     
    
 ################################ Visualise ################################
 #visualise(x_array,mass,vis_type,dims) 
 
-if plot_more:
+if plot_more:    
+    if CFL_use:
+        t_axis = dt_CFL_prog[:final_it+1]
+    else:
+        t_axis = np.arange(final_it+1)*dt
     ### Trajectory
     fig = plt.figure()
     gs = fig.add_gridspec(2, 2)
@@ -107,7 +166,7 @@ if plot_more:
     ax0 = fig.add_subplot(gs[0, :])
     ax0.set_title('x-y plane')
     elements = np.arange(start = 0,stop = (n_bodies)*3,step = 3).astype(int)
-    ax0.plot(np.transpose(x_array[elements,:]),np.transpose(x_array[elements+1,:]))
+    ax0.plot(np.transpose(x_array[elements,:final_it+1]),np.transpose(x_array[elements+1,:final_it+1]))
     ax0.set_xlabel('x')
     ax0.set_ylabel('y')
     labels = list(map(str,mass))
@@ -116,32 +175,42 @@ if plot_more:
     ax1 = fig.add_subplot(gs[1, :-1])
     ax1.set_title('x against t')
     for i in range(n_bodies):
-        ax1.plot(np.arange(n_steps+1)*dt,x_array[i*3,:])
+        ax1.plot(t_axis,x_array[i*3,:final_it+1])
     ax1.set_xlabel('time')
     ax1.set_ylabel('x')
 
     ax2 = fig.add_subplot(gs[1:, -1])
     ax2.set_title('y against t')
     for i in range(n_bodies):
-        ax2.plot(np.arange(n_steps+1)*dt,x_array[(i*3) + 1,:])
+        ax2.plot(t_axis,x_array[(i*3) + 1,:final_it+1])
     ax2.set_xlabel('time')
     ax2.set_ylabel('y')
     fig.tight_layout()
     plt.show()
 
+    # Plot delta t
+    plt.plot(np.arange(final_it),dt_CFL_store[:final_it])
+    plt.xlabel('steps')
+    plt.ylabel('dt')
+    plt.title('Plot of dt chosen for each timestep, with C = {}'.format(C))
+    plt.show()
+
+
     # Plot energy over time
+    E = E[:final_it+1]
     if E[0] != 0:
         print('E0 not 0')
         energy_error = np.abs((E - E[0])/E[0])
     else:
         energy_error = np.abs(E - E[0])/np.sum(kinetic_energy(v_array[:,0],mass))
-    plt.plot(np.arange(n_steps+1)*dt,energy_error)
+    plt.plot(t_axis,energy_error)
     plt.xlabel('time')
     plt.ylabel('energy error')
     plt.title('Relative error of energy against time')
     plt.show()
 
     # Plot L_z over time
+    L = L[:,:final_it+1] 
     if L[2,0] != 0:
         print('Lz0 not 0')
         L_z_error = (L[2,:] - L[2,0])/L[2,0]
@@ -153,39 +222,13 @@ if plot_more:
         r_0 = x_0 - CoM # All r vectors
         L_0 = np.cross(r_0[:,0],p_0[:,0])
         L_z_error = (L[2,:] - L[2,0])/L_0[2]
-    plt.plot(np.arange(n_steps+1)*dt,L_z_error)
+    plt.plot(t_axis,L_z_error)
     plt.xlabel('time')
     plt.ylabel('L_z error')
     plt.title('Relative error of angular momentum (z) against time')
     plt.show()
 
 
-    ### Eccentricity and energy over time
-    #fig, (ax1, ax2) = plt.subplots(nrows=2)
-    # Plot eccentricity over time
-    #ax1.plot(np.arange(n_steps+1)*dt,e)
-    #ax1.set_xlabel('time')
-    #ax1.set_ylabel('eccentricity')
 
-    # Plot energy over time
-    #ax2.plot(np.arange(n_steps+1)*dt,E)
-    #ax2.set_xlabel('time')
-    #ax2.set_ylabel('energy')
-    #plt.show()
-
-    
-    #### Plotting angular momentum
-    #fig, (ax0, ax1, ax2) = plt.subplots(nrows=3)
-    #plt.title('Angular momentum')
-    #ax0.plot(np.arange(n_steps+1)*dt,L[0,:])
-    #ax0.set_xlabel('time')
-    #ax0.set_ylabel('L_x')
-    #ax1.plot(np.arange(n_steps+1)*dt,L[1,:])
-    #ax1.set_xlabel('time')
-    #ax1.set_ylabel('L_y')
-    #ax2.plot(np.arange(n_steps+1)*dt,L[2,:])
-    #ax2.set_xlabel('time')
-    #ax2.set_ylabel('L_z')
-    #plt.show()
 
     

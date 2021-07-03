@@ -1,3 +1,13 @@
-Points to mention:
+Computation takes 9.81 seconds before 'optimising'
+A: Remove eccentricity: 7.79 seconds
+B: Remove eccentricity, and CoM stuff: 6.20 seconds
+C: Remove all conserved quantities: 3.92 seconds
 
-- CFL time - what is dx
+Improvements:
+    Adjust for loop for CFL dt to dupilicate repeated entries. With B method, gets to 5.6 seconds ish
+
+
+
+Changes made: 
+- Time step does every pair of bodies, and stores all, and selects minimum
+    - Was a mistake before, just looking at the last body since it overwrote all others
