@@ -15,7 +15,7 @@ t = 0 # Start time
 dt = 0.001 # Not needed if CFL stepping, but needs to be declared
 
 ## Courant number
-C = 0.01
+C = 0.005
 
 # Energy error threshold
 e_thresh = 0.05
@@ -34,7 +34,7 @@ if sim_type == '2':
 elif sim_type == '3':
     mass = (1,1,1) # Equal masses
     # Can be fig-8 or Euler-line or Lagrange
-    orbit_type = 'Lagrange'
+    orbit_type = 'fig-8'
     if orbit_type == 'fig-8':
         # Fig 8
         x_IC_x = 0.97000436
@@ -43,6 +43,8 @@ elif sim_type == '3':
         v_IC_y = -0.86473146
         x_ICs = (x_IC_x,-x_IC_y,0,-x_IC_x,x_IC_y,0,0,0,0) # x,y,z,x,y,z,...
         v_ICs = (-v_IC_x/2,-v_IC_y/2,0,-v_IC_x/2,-v_IC_y/2,0,v_IC_x,v_IC_y,0) # x,y,z,x,y,z,...
+        print(x_ICs)
+        print(v_ICs)
     elif orbit_type == 'Euler-line':
         # Euler line
         radius = 1
@@ -54,7 +56,7 @@ elif sim_type == '3':
         hypotenuse = 2*h/np.sqrt(3)
         M = 3 # Needs equal masses
         radius = 2*h/3
-        v_ = np.sqrt(G*(M-1)/(2*h))  # speed of each body
+        v_ = np.sqrt(np.sqrt(3)*G/2)  # speed of each body
         ### My calcs
         x_ICs = (0,h,0,hypotenuse/2,0,0,-hypotenuse/2,0,0) # x,y,z,x,y,z,...
         v_ICs = (-v_,0,0,np.sin(np.pi/6)*v_,np.cos(np.pi/6)*v_,0,np.sin(np.pi/6)*v_,-np.cos(np.pi/6)*v_,0) # x,y,z,x,y,z,...
@@ -67,9 +69,8 @@ elif sim_type == '4':
     mass = (1,1,1,1)
     M = 4
     x_ = 1
-    radius = 1
     x_ICs = (x_,0,0,0,x_,0,-x_,0,0,0,-x_,0)
-    v_ = np.sqrt(G*(5)/(4*radius))
+    v_ = np.sqrt(G*(1+2*np.sqrt(2))/4)
     v_ICs = (0,v_,0,-v_,0,0,0,-v_,0,v_,0,0)
 
     #x_ICs = (1.382857,0,0,0,0.157030,0,-1.382857,0,0,0,-0.157030,0)

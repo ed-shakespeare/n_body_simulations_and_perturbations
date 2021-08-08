@@ -104,7 +104,7 @@ def perturb_fig_8(x_perturbation = 0,v_perturbation = 0,plot_more = False):
     dt_CFL_store= []
 
     ################################ Run method ################################
-    t0 = time.time()
+    #t0 = time.time()
     i = -1
     while dt_CFL_prog[-1] < duration:
         i += 1
@@ -118,6 +118,7 @@ def perturb_fig_8(x_perturbation = 0,v_perturbation = 0,plot_more = False):
                 else:
                     del_t[j,k] = np.max(del_t)
                 del_t[k,j] = del_t[j,k]
+        print(del_t)
         dt_CFL_0 = np.min(del_t)
         dt = dt_CFL_0 # Actual timestep to be used
         # Update position and velocity 
@@ -148,12 +149,13 @@ def perturb_fig_8(x_perturbation = 0,v_perturbation = 0,plot_more = False):
         x_array = np.append(x_array,np.reshape(np.asarray(x_array_hold),(-1,1)),axis=1)
         v_array = np.append(v_array,np.reshape(np.asarray(v_array_hold),(-1,1)),axis=1)
         ## Track conserved quantities
-        L = np.append(L,np.reshape(np.asarray(angular_momentum(x_array[:,i+1],v_array[:,i+1],mass)),(-1,1)),axis=0)
+        L = np.append(L,np.reshape(np.asarray(angular_momentum(x_array[:,i+1],v_array[:,i+1],mass)),(-1,1)),axis=1)
         E_hold,r = total_energy(x_array[:,i+1],v_array[:,i+1],mass,G)
         E = np.append(E,E_hold)
         ## Stop if position or energy error grows too large
         final_it = i+1 # Final iteration
         if np.mod(i,100) == 0:
+            print(x_array_hold)
             # Every 100 steps, check
             if any(np.abs(x_array[:,i+1]) > box_size):
                 # If position goes outside square/cube of side length 2*box_size, centred on origin
@@ -173,7 +175,7 @@ def perturb_fig_8(x_perturbation = 0,v_perturbation = 0,plot_more = False):
                 shape_value = dt_CFL_prog[i+1]
                 return shape_value, E[0], L[2,0]
 
-    t1 = time.time() - t0    
+    #t1 = time.time() - t0    
     #print('Real time for computation: {} seconds'.format(t1))
 
        
@@ -254,10 +256,10 @@ def perturb_fig_8(x_perturbation = 0,v_perturbation = 0,plot_more = False):
         plt.show()
 
     shape_value = duration  #If it reaches the end, it stays as a fig-8
-    print('Ran for full duration (finish time: {})'.format(dt_CFL_prog[i+1]))
+    print('Ran for full duration (finish time: {})'.format(dt_CFL_prog[final_it]))
     return shape_value, E[0], L[2,0]
 
-gridsearch = True
+gridsearch = False
 if gridsearch:
     perturb_1 = np.linspace(-0.02,0.02,3)
     perturb_2 = np.linspace(-0.02,0.02,3)
@@ -282,7 +284,7 @@ if gridsearch:
     #-0.02692308 for x perturb seemed stableish but not for as long as originally thought
 else:
     # Single perturbation, for testing
-    x_perturbation = 0.01
-    v_perturbation = 0.01
+    x_perturbation = 0.0
+    v_perturbation = 0.0
     plot_more = True
     _,_,_ = perturb_fig_8(x_perturbation,v_perturbation,plot_more)
