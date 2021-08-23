@@ -8,16 +8,17 @@ from test_constants import CoM_pos, CoM_vel, angular_momentum, eccentricity, tot
 from ode_function import ode_func
 from mpl_toolkits.mplot3d import Axes3D
 
+
 ################################ Setup ################################ 
 ######## CHANGE VALUES BELOW ########
 # Setup values
 n_steps = 100000
-duration = 15
+duration = 50
 t = 0 # Start time
 dt = 0.001 # Not needed if CFL stepping, but needs to be declared
 
 ## Courant number
-C = 0.002
+C =  0.01
 
 # Energy error threshold
 e_thresh = 0.05
@@ -44,7 +45,7 @@ if sim_type == '2':
 elif sim_type == '3':
     mass = (1,1,1) # Equal masses
     # Can be fig-8 or Euler-line or Lagrange
-    orbit_type = 'other2'
+    orbit_type = 'fig-8'
     if orbit_type == 'fig-8':
         # Fig 8
         x_IC_x = 0.97000436
@@ -83,6 +84,12 @@ elif sim_type == '3':
         # II.C.2b yin-yang I
         x_dot = 0.28270
         y_dot = 0.32721
+        x_ICs = (-1,0,0,1,0,0,0,0,0) # x,y,z,x,y,z,...
+        v_ICs = (x_dot,y_dot,0,x_dot,y_dot,0,-2*x_dot,-2*y_dot,0) # x,y,z,x,y,z,...
+    elif orbit_type == 'other3':
+        # I.B.2 moth II
+        x_dot = 0.43917
+        y_dot = 0.45297
         x_ICs = (-1,0,0,1,0,0,0,0,0) # x,y,z,x,y,z,...
         v_ICs = (x_dot,y_dot,0,x_dot,y_dot,0,-2*x_dot,-2*y_dot,0) # x,y,z,x,y,z,...
 
