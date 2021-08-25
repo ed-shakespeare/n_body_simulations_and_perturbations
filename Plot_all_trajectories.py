@@ -2,11 +2,13 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
-from Integration_methods_bodies import Euler_step,Euler_Cromer_step,Leapfrog_step
-from visualisation import visualise
-from test_constants import CoM_pos, CoM_vel, angular_momentum, eccentricity, total_energy, kinetic_energy
+from integration_methods import Euler_step,Euler_Cromer_step,Leapfrog_step
+from test_constants import CoM_pos, CoM_vel, angular_momentum, total_energy, kinetic_energy
 from ode_function import ode_func
 from mpl_toolkits.mplot3d import Axes3D
+
+
+# Able to plot all the different solutions for n from 2 to 5.
 
 
 ################################ Setup ################################ 
@@ -14,34 +16,34 @@ from mpl_toolkits.mplot3d import Axes3D
 # Setup values
 n_steps = 100000
 duration = 50
-t = 0 # Start time
-dt = 0.001 # Not needed if CFL stepping, but needs to be declared
-
 ## Courant number
 C =  0.01
 
 # Energy error threshold
 e_thresh = 0.05
 box_size = 10
-timestep_size = 10e-9
+timestep_size = 10e-5
 timestep_count = 100000
 
 # Gravitational constant
 G = 1
 #G = 6.67408e-11
 
-# Visualisation
-vis_type = 'animation'
-dims = 2
-plot_more = 1   
+# Choose the integration method
+step_function = Leapfrog_step
 
-# Number of bodies: 2, 3, 4. (str) Or can do space
+# Visualisation
+plot_more = 1  # 1 for all plots, 2 for just trajectory with ICs, 0 for no plots
+
+# Number of bodies: 2, 3, 4, 5. (str) Or can do space
+# See the sim_types below, with options for orbit type
 sim_type = '3'
 # Setup array for trajectories
 if sim_type == '2':
     x_ICs = (1,0,0,0,0,0) # x,y,z,x,y,z,...
     v_ICs = (-0.25,-0.5,0,0.25,0.25,0) # x,y,z,x,y,z,...
     mass = (1,1)
+
 elif sim_type == '3':
     mass = (1,1,1) # Equal masses
     # Can be fig-8 or Euler-line or Lagrange
@@ -114,7 +116,6 @@ elif sim_type == '4':
         x_ICs = (0,h,0,hypotenuse/2,0,0,-hypotenuse/2,0,0,0,1/3,0) # x,y,z,x,y,z,...
         v_ICs = (-v_,0,0,np.sin(np.pi/6)*v_,np.cos(np.pi/6)*v_,0,np.sin(np.pi/6)*v_,-np.cos(np.pi/6)*v_,0,0,0,0) # x,y,z,x,y,z,...
 
-
 elif sim_type == '5':
     mass = (1,1,1,1,1)
     x2 = 0.439775
@@ -140,6 +141,11 @@ elif sim_type == 'space':
 
 ######## CHANGE VALUES ABOVE ########
 
+### Leave these
+t = 0 # Start time
+dt = 0.001 # Not needed if CFL stepping, but needs to be declared
+###
+
 n_bodies = round(len(x_ICs)/3)
 
 # Check number of bodies is consistent
@@ -164,9 +170,6 @@ CoM_pos_array = np.tile(CoM,(n_bodies,1))
 x_array[:,0] = x_array[:,0] - CoM_pos_array[:,0]
 CoM_vel_array = np.tile(CoM_v,(n_bodies,1))
 v_array[:,0] = v_array[:,0] - CoM_vel_array[:,0]
-
-print(x_array[:,0])
-print(v_array[:,0])
 
 # Angular momentum
 L = np.empty((3,n_steps+1))
@@ -202,7 +205,7 @@ for i in range(n_steps):
     dt_CFL_0 = np.min(del_t)
     dt = dt_CFL_0 # Actual timestep to be used
     # Update position and velocity 
-    x_array_test,v_array_test,_ = Leapfrog_step(x_array[:,i],v_array[:,i],ode_func,dt,mass,G,force_eval = [])
+    x_array_test,v_array_test,_ = step_function(x_array[:,i],v_array[:,i],ode_func,dt,mass,G,force_eval = [])
 
     #Calculate energy to get r
     _,r_1 = total_energy(x_array_test,v_array_test,mass,G)
@@ -226,9 +229,9 @@ for i in range(n_steps):
     dt = dt_CFL
     # Update position and velocity 
     if i > 0:
-        x_array[:,i+1],v_array[:,i+1],force_eval = Leapfrog_step(x_array[:,i],v_array[:,i],ode_func,dt,mass,G,force_eval)
+        x_array[:,i+1],v_array[:,i+1],force_eval = step_function(x_array[:,i],v_array[:,i],ode_func,dt,mass,G,force_eval)
     else: 
-        x_array[:,i+1],v_array[:,i+1],force_eval = Leapfrog_step(x_array[:,i],v_array[:,i],ode_func,dt,mass,G,force_eval=[])
+        x_array[:,i+1],v_array[:,i+1],force_eval = step_function(x_array[:,i],v_array[:,i],ode_func,dt,mass,G,force_eval=[])
     ## Track conserved quantities
     L[:,i+1] = angular_momentum(x_array[:,i+1],v_array[:,i+1],mass)
     E[i+1],r = total_energy(x_array[:,i+1],v_array[:,i+1],mass,G)
@@ -263,10 +266,10 @@ print(i)
 print(np.max(dt_CFL_prog))
    
 ################################ Visualise ################################
-#visualise(x_array,mass,vis_type,dims) 
 
 if plot_more == 1:
     t_axis = dt_CFL_prog[:final_it+1]
+
     ### Trajectory
     fig = plt.figure()
     gs = fig.add_gridspec(2, 2)
@@ -287,19 +290,15 @@ if plot_more == 1:
     centre_pos = np.zeros((2,n_bodies))
     for i in range(n_bodies):
         ax1.plot(t_axis,x_array[i*3,:final_it+1])
-        #centre_pos[0,i] = (np.max(x_array[i*3,:final_it+1]) + np.min(x_array[i*3,:final_it+1]))/2
     ax1.set_xlabel('time')
     ax1.set_ylabel('x')
-    #
     ax2 = fig.add_subplot(gs[-1, 1:])
     ax2.set_title('y against t')
     for i in range(n_bodies):
         ax2.plot(t_axis,x_array[(i*3) + 1,:final_it+1])
-        #centre_pos[1,i] = (np.max(x_array[(i*3) + 1,:final_it+1]) + np.min(x_array[(i*3) + 1,:final_it+1]))/2
     ax2.set_xlabel('time')
     ax2.set_ylabel('y')
     fig.tight_layout()
-    #ax0.plot(centre_pos[0,:],centre_pos[1,:],'r+')
     plt.show()
 
     # Plot delta t
@@ -340,10 +339,8 @@ if plot_more == 1:
         r_0 = x_0 - CoM # All r vectors
         L_0 = np.cross(r_0[:,0],p_0[:,0])
         L_z_error = (L[2,:] - L[2,0])/L_0[2]
-    #plt.plot(np.arange(final_it+1),L_z_error)
     plt.plot(t_axis,L_z_error)
     plt.xlabel('time')
-    #plt.xlabel('steps')
     plt.ylabel('L_z error')
     plt.title('Relative error of $L_z$ against time')
     plt.show()
@@ -352,7 +349,6 @@ elif plot_more == 2:
     t_axis = dt_CFL_prog[:final_it+1]
     ### Trajectory
     fig,ax0 = plt.subplots()
-    #gs = fig.add_gridspec(2, 2)
     # x,y plane
     ax0.axis('equal')
     ax0.set_title('x-y plane')
@@ -361,10 +357,10 @@ elif plot_more == 2:
     ax0.plot(x_array[elements,0],x_array[elements+1,0],'ko',ms=10)
     ax0.set_xlabel('x')
     ax0.set_ylabel('y')
-    #labels = list(map(str,mass))
-    #ax0.legend(labels,title = 'Masses of bodies')
     plt.show()
 
+
+### Produces similarity value and plots curve
 if sim_type == '3':
     r1 = x_array[:3,:final_it]
     r2 = x_array[3:6,:final_it]
@@ -393,7 +389,6 @@ if sim_type == '3':
     X2_round = np.ceil(X2_norm*1000).astype(int) - 1
     for i in range(len(X1_round)):
         fill_matrix[X1_round[i],X2_round[i]] = 1
-    #print(fill_matrix)
 
     print(np.sum(fill_matrix))
 

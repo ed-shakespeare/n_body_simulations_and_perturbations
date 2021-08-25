@@ -1,19 +1,25 @@
-# n_body_project
-Code for n body orbits/choreographies with Max Ruffert
+All code that is needed for running simulations is in highest level, with other versions\old code containing outdated versions of certain files
 
+The files available are:
 
-## To run code
+- Plot_all_trajectories.py
+    - This can be used to simulate every type of solution seen in the paper.
+- gridsearch_perturbations_fig8.ipynb
+    - Produces plots after gridsearch of perturbations to fig8
+    - Jupyter notebook, to make it easier to store outputs once the gridsearch has taken place and then modify graphs etc without rerunning all code
+- gridsearch_perturbations_butterfly.ipynb
+    - Similar to above, but for the butterfly solution
+- single_perturbation_fig8.ipynb
+    - Plots the trajectory of a single perturbations
+    - Used for inspection of specific solutions, without needing to research entire grid
+- single_perturbation_butterfly.ipynb
+    - Similar to above, but for the butterfly solution
 
-`n_body_v2.py` currently contains the script that can be adjusted for ICs. The ICs can be changed at the top of the file, and the visualisation instructions changed towards the bottom. When this file is run, it uses functions from the other files in the repository to produce visualisations of the trajectories, based on the inital conditions, masses of bodies, etc., as well as plots to show certain quantities over time.
+These all call functions from other files:
 
-## Possible configurations
-
-Currently, the code can produce plots of trajectories with the following variable features:
-- N >= 2 bodies, with freely configurable initial position, initial velocity, and mass
-- 2D or 3D plot
-- Animated or still graph
-- Can plot energy, eccentricity, angular momentum, centre of mass, as functions of time or in 3D (where appropriate) *
-- Can plot in frame of centre of mass
-- Integration done through Euler, Euler-Cromer, or Leapfrog
-
-\* Most features are relatively robust, although these can be prone to error in calculation
+- ode_function.py
+    - Contains the functions found in the system of ODEs
+- test_constants.py
+    - A range of functions for testing properties of the system that should remain constant, such as energy, angular momentum
+- integration_methods.py:
+    - The three different integration methods chosen for this investigation
