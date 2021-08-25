@@ -12,6 +12,7 @@ def ode_func(component,x,v,x_other,mass,G):
     Output
         func_value is value of function
     '''
+    
     func_value = np.zeros_like(x) # This will become vector of length 3, like xdot or vdot
     
     # Position
